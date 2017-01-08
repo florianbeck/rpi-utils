@@ -1,0 +1,42 @@
+#!/bin/bash
+
+_iface=wlan0
+
+case "$1" in
+  set)
+    sudo $(dirname $0)/wifi_toggle.sh $2
+  ;;
+
+ 	toggle)
+		sudo $(dirname $0)/wifi_toggle.sh toggle
+	;;
+ 
+  config)
+		sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+	;;
+ 
+ 	status)
+		iwconfig $_iface
+		ifconfig $_iface
+	;;
+
+	button)
+		sudo pkill -f wifi_button.sh
+		if ! [[ $2 = "stop" ]]; then 
+			sudo $(dirname $0)/wifi_button.sh $2 > /dev/null 2>&1 &
+			echo "button events started $2"
+		else
+			echo "button events stopped"
+		fi
+	;;
+
+  help|*)
+		echo "wifi - toggle between default and ad-hoc mode"
+		echo "usage: wifi set [default|adhoc]"
+		echo "usage: wifi toggle"
+		echo "usage: wifi config"
+		echo "usage: wifi status"
+		echo "usage: wifi button [BCM_GPIO pin number]"
+	;;
+
+esac

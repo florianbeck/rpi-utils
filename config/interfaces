@@ -1,0 +1,17 @@
+auto lo
+iface lo inet loopback
+
+iface eth0 inet manual
+
+iface wlan0 inet manual
+iface default inet manual
+    wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+iface adhoc inet static
+    address 10.0.0.1
+    netmask 255.255.255.0
+    wireless-channel 1
+    wireless-essid #ssid#
+    wireless-key off
+    wireless-mode ad-hoc
+    post-up /usr/sbin/dhcpd -q $IFACE
+    pre-down pgrep "dhcpd" | xargs kill -9
