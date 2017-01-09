@@ -3,13 +3,19 @@
 source $(dirname $0)/rpi-utils.conf
 
 _help() {
-	echo "wifi - toggle between default and ad-hoc mode"
+	echo "wifi - toggle between client and accesspoint mode"
 	echo ""
 	echo "usage: wifi set [default|adhoc]"
-	echo "       wifi toggle"
-	echo "       wifi config"
-	echo "       wifi status"
-	echo "       wifi button [start|stop]"
+	echo "       [default: wifi interface acts as client]"
+	echo "       [adhoc:   wifi interface acts as accesspoint]"
+	echo "usage: wifi toggle"
+	echo "       [toggle between default and adhoc]"
+	echo "usage: wifi config"
+	echo "       [edit wpa_supplicant.conf]"
+	echo "usage: wifi status"
+	echo "       [status info provided by ifconfig and iwconfig]"
+	echo "usage: wifi button [start|stop]"
+  echo "       [start/stop the button event listener]"
 }
 
 case "$1" in

@@ -3,8 +3,10 @@
 source $(dirname $0)/rpi-utils.conf
 
 _help() {
-	echo "shutdownbutton - button to trigger shutdown"
+	echo "shutdownbutton - button to trigger shutdown command"
+	echo ""
 	echo "usage: shutdownbutton [start|stop]"
+	echo "       [start/stop the button event listener]"
 }
 
 case "$1" in
