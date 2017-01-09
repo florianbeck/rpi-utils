@@ -97,15 +97,10 @@ function add_package() {
 
 function add_autostart() {
     install_log "Modify rc.local file"
-    if [[ $(grep "$package_dir/wifi set" /etc/rc.local) = "" ]]; then
-        sudo sed -i -e "\$i \\$package_dir/wifi set default\\n" /etc/rc.local
-    fi
-    if [[ $(grep "$package_dir/wifi button" /etc/rc.local) = "" ]]; then
-        sudo sed -i -e "\$i \\$package_dir/wifi button start\\n" /etc/rc.local 
-    fi   
-    if [[ $(grep "$package_dir/shutdownbutton" /etc/rc.local) = "" ]]; then
-        sudo sed -i -e "\$i \\$package_dir/shutdownbutton start\\n" /etc/rc.local 
-    fi  
+    sudo sed -i "$(echo "$package_dir" | sed 's/\//\\\//g')\/.*/d" /etc/rc.local
+    sudo sed -i -e "\$i \\$package_dir/wifi set default" /etc/rc.local
+    sudo sed -i -e "\$i \\$package_dir/wifi button start" /etc/rc.local 
+    sudo sed -i -e "\$i \\$package_dir/shutdownbutton start\\n" /etc/rc.local  
 }
 
 function install_complete() {
