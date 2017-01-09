@@ -1,0 +1,25 @@
+#!/bin/bash
+
+source $(dirname $0)/rpi-utils.conf
+
+_help() {
+	echo "shutdownbutton - button to trigger shutdown"
+	echo "usage: shutdownbutton [start|stop]"
+}
+
+case "$1" in
+  start)
+    sudo $(dirname $0)/$SCRIPTS_dir/shutdownbutton_button.sh  > /dev/null 2>&1 &
+    echo "button events started"
+  ;;
+
+ 	stop)
+		sudo pkill -f shutdownbutton_button.sh
+		echo "button events stoped"
+	;;
+ 
+  help|*)
+		_help
+	;;
+
+esac

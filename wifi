@@ -1,14 +1,29 @@
 #!/bin/bash
 
-_iface=wlan0
+source $(dirname $0)/rpi-utils.conf
+
+_help() {
+	echo "wifi - toggle between default and ad-hoc mode"
+	echo ""
+	echo "usage: wifi set [default|adhoc]"
+	echo "       wifi toggle"
+	echo "       wifi config"
+	echo "       wifi status"
+	echo "       wifi button [start|stop]"
+}
 
 case "$1" in
   set)
-    sudo $(dirname $0)/wifi_toggle.sh $2
+		if [[ $2 = "default" ]] || [[ $2 = "adhoc" ]]; then 
+			sudo $(dirname $0)/$SCRIPTS_dir/wifi_toggle.sh $2
+		else 
+			_help
+		fi
+    
   ;;
 
  	toggle)
-		sudo $(dirname $0)/wifi_toggle.sh toggle
+		sudo $(dirname $0)/$SCRIPTS_dir/wifi_toggle.sh toggle
 	;;
  
   config)
@@ -16,27 +31,24 @@ case "$1" in
 	;;
  
  	status)
-		iwconfig $_iface
-		ifconfig $_iface
+		iwconfig $WIFI_iface
+		ifconfig $WIFI_iface
 	;;
 
 	button)
 		sudo pkill -f wifi_button.sh
-		if ! [[ $2 = "stop" ]]; then 
-			sudo $(dirname $0)/wifi_button.sh $2 > /dev/null 2>&1 &
-			echo "button events started $2"
-		else
+		if [[ $2 = "start" ]]; then 
+			sudo $(dirname $0)/$SCRIPTS_dir/wifi_button.sh > /dev/null 2>&1 &
+			echo "button events started"
+		elif [[ $2 = "stop" ]]; then
 			echo "button events stopped"
+		else 
+			_help
 		fi
 	;;
 
   help|*)
-		echo "wifi - toggle between default and ad-hoc mode"
-		echo "usage: wifi set [default|adhoc]"
-		echo "usage: wifi toggle"
-		echo "usage: wifi config"
-		echo "usage: wifi status"
-		echo "usage: wifi button [BCM_GPIO pin number]"
+		_help
 	;;
 
 esac

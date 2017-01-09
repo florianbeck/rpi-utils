@@ -1,4 +1,5 @@
 #!/bin/bash
+source $(dirname $0)/../rpi-utils.conf
 
 _term() { 
   echo "Caught SIGTERM signal!" 
@@ -9,29 +10,30 @@ _term() {
 init(){
 
   if [[ $1 = "" ]]; then
-    pin=16
+    pin=$SHUTDOWN_btn_pin
   else 
     pin=$1
   fi
 
   echo "pin $pin"
 
-	gpio -g mode $pin in
-	gpio -g mode $pin up
+  gpio -g mode $pin in
+  gpio -g mode $pin up
 
-	while [ 1 ] ; do
-		echo "waiting"
-		gpio -g wfi $pin falling &
+  while [ 1 ] ; do
+    echo "waiting"
+    gpio -g wfi $pin falling &
     child=$!
     wait "$child"
-		echo "button pressed, toggle wifi"
-		$(dirname $0)/wifi toggle
-		sleep 2
-	done
+    echo "button pressed, shutdown"
+    sudo $(dirname $0)/led.sh $WIFI_led_pin off &
+    sudo shutdown now
+  done
 }
 
 # locking file and init
-lockfile=$(dirname $0)/wifi_button.lock
+filename=$(basename $0)
+lockfile=$(dirname $0)/${filename%.*}.lock
 
 if ( set -o noclobber; echo "$$" > "$lockfile") 2> /dev/null; then
   trap 'rm -f "$lockfile"; _term; exit $?' INT TERM EXIT

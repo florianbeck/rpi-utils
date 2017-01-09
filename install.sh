@@ -1,7 +1,7 @@
 #!/bin/bash
-package_name="rpi-wifi-manager"
+source $(dirname $0)/rpi-utils.conf
+package_name="rpi-utils"
 package_dir="/opt/$package_name"
-
 
 # Outputs a RaspAP INSTALL log line
 function install_log() {
@@ -61,11 +61,14 @@ function copy_config() {
         sudo mv $_file $package_dir/$_config/$_newfile.original || install_error "Unable to remove old '$_file'"
     fi
     sudo cp --preserve=mode  $package_dir/$_config/$_newfile $_file || install_error "Unable to move $newfile defaults file"
-    sudo ln -s $_file $package_dir/$_config/$_newfile.link
+    if ! [ -f $package_dir/$_config/$_newfile.link ]; then
+        sudo ln -s $_file $package_dir/$_config/$_newfile.link
+    fi
 }
 
 function default_config() {
     install_log "Setting up configuration"
+    sudo sed -i "s/PACKAGE_dir=.*/PACKAGE_dir=$(echo "$package_dir" | sed 's/\//\\\//g')/g" $package_dir/rpi-utils.conf
     copy_config /etc/dhcp/dhcpd.conf dhcpd.conf
     sudo sed -i "s/#hostname#/$(hostname)/g" /etc/dhcp/dhcpd.conf
     copy_config /etc/network/interfaces interfaces  
@@ -82,16 +85,27 @@ function add_package() {
     echo '#!/bin/sh' | sudo tee /usr/bin/wifi  > /dev/null
     echo "$package_dir/wifi \$*" | sudo tee -a /usr/bin/wifi  > /dev/null
     echo "Added '/usr/bin/wifi' file"
+    if [ -f /usr/bin/shutdownbutton ]; then
+        sudo mv /usr/bin/shutdownbutton /usr/bin/shutdownbutton.old || install_error "Unable to remove old '$_file'"
+    fi
+    sudo touch /usr/bin/shutdownbutton
+    sudo chmod +x /usr/bin/shutdownbutton
+    echo '#!/bin/sh' | sudo tee /usr/bin/shutdownbutton  > /dev/null
+    echo "$package_dir/shutdownbutton \$*" | sudo tee -a /usr/bin/shutdownbutton  > /dev/null
+    echo "Added '/usr/bin/shutdownbutton' file"
 }
 
 function add_autostart() {
-    install_log "Add wifi to rc.local file"
+    install_log "Modify rc.local file"
     if [[ $(grep "$package_dir/wifi set" /etc/rc.local) = "" ]]; then
         sudo sed -i -e "\$i \\$package_dir/wifi set default\\n" /etc/rc.local
     fi
     if [[ $(grep "$package_dir/wifi button" /etc/rc.local) = "" ]]; then
-        sudo sed -i -e "\$i \\$package_dir/wifi button 16 > /dev/null 2>&1 &\\n" /etc/rc.local 
+        sudo sed -i -e "\$i \\$package_dir/wifi button start\\n" /etc/rc.local 
     fi   
+    if [[ $(grep "$package_dir/shutdownbutton" /etc/rc.local) = "" ]]; then
+        sudo sed -i -e "\$i \\$package_dir/shutdownbutton start\\n" /etc/rc.local 
+    fi  
 }
 
 function install_complete() {

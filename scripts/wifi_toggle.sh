@@ -1,31 +1,31 @@
 #!/bin/bash
-_iface=wlan0 #interface
+source $(dirname $0)/../rpi-utils.conf
 
 enableAdHocNetwork(){
 	if ! [[ $(pgrep -f wifi_ipcheck.sh) = "" ]]; then
 		sudo pkill -f wifi_ipcheck.sh
 	fi
-	if ! [[ $(ifconfig | grep $_iface) = "" ]]; then
-		ifdown $_iface
+	if ! [[ $(ifconfig | grep $WIFI_iface) = "" ]]; then
+		ifdown $WIFI_iface
 		sleep 1
 	fi
-	ifup $_iface=adhoc
+	ifup $WIFI_iface=adhoc
 	echo "wifi - ad-hoc mode enabled"
-	echo "created network $(iwconfig $_iface | grep "ESSID:" | awk -F'[: ]+' '{print $5}'), ip $(ifconfig wlan0 | grep "inet " | awk -F'[: ]+' '{print $4}')"
-	sudo $(dirname $0)/wifi_led.sh heartbeat &
+	echo "created network $(iwconfig $WIFI_iface | grep "ESSID:" | awk -F'[: ]+' '{print $5}'), ip $(ifconfig wlan0 | grep "inet " | awk -F'[: ]+' '{print $4}')"
+	sudo $(dirname $0)/led.sh $WIFI_led_pin heartbeat $WIFI_led_dim &
 }
 
 enableDefaultNetwork(){
 	if ! [[ $(pgrep -f wifi_ipcheck.sh) = "" ]]; then
 		sudo pkill -f wifi_ipcheck.sh
 	fi
-	if ! [[ $(ifconfig | grep $_iface) = "" ]]; then
-		ifdown $_iface
+	if ! [[ $(ifconfig | grep $WIFI_iface) = "" ]]; then
+		ifdown $WIFI_iface
 		sleep 1
 	fi
-	ifup $_iface=default
+	ifup $WIFI_iface=default
 	echo "wifi - default mode enabled"
-	sudo $(dirname $0)/wifi_led.sh blink &
+	sudo $(dirname $0)/led.sh $WIFI_led_pin blink $WIFI_led_dim &
 	i=1
 	while [ $i -le 15 ]
 	do
@@ -37,7 +37,7 @@ enableDefaultNetwork(){
 	  let i=$i+1
 	done
 	sudo $(dirname $0)/wifi_ipcheck.sh > /dev/null 2>&1 &
-	echo "connected to $(iwconfig $_iface | grep "ESSID:" | awk -F'[: ]+' '{print $5}'), ip $(ifconfig wlan0 | grep "inet " | awk -F'[: ]+' '{print $4}')"
+	echo "connected to $(iwconfig $WIFI_iface | grep "ESSID:" | awk -F'[: ]+' '{print $5}'), ip $(ifconfig $WIFI_iface | grep "inet " | awk -F'[: ]+' '{print $4}')"
 }
 
 init(){
@@ -51,10 +51,10 @@ init(){
 	  ;;
 
 	  toggle)
-			if [[ $(ifconfig | grep $_iface) = "" ]]; then
+			if [[ $(ifconfig | grep $WIFI_iface) = "" ]]; then
 				enableDefaultNetwork
 			else
-				_mode=$(iwconfig $_iface | grep "Mode:" | awk -F'[: ]+' '{print $3}')
+				_mode=$(iwconfig $WIFI_iface | grep "Mode:" | awk -F'[: ]+' '{print $3}')
 
 				if [ $_mode = "Ad-Hoc" ]; then
 					enableDefaultNetwork
@@ -73,7 +73,8 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
-lockfile=$(dirname $0)/wifi_toggle.lock
+filename=$(basename $0)
+lockfile=$(dirname $0)/${filename%.*}.lock
 
 if ( set -o noclobber; echo "$$" > "$lockfile") 2> /dev/null; then
   trap 'rm -f "$lockfile"; exit $?' INT TERM EXIT
