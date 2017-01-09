@@ -34,7 +34,7 @@ The buttons should bring the pin to ground. The leds anode should be connected t
 
 ### `$ wifi`
 
-```sh
+```
 wifi - toggle between default and ad-hoc mode
 
 usage: wifi set [default|adhoc]
@@ -52,7 +52,7 @@ usage: wifi button [start|stop]
 
 ### `$ shutdownbutton`
 
-```sh
+```
 shutdownbutton - button to trigger shutdown command
 
 usage: shutdownbutton [start|stop]
