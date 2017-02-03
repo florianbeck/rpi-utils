@@ -37,8 +37,18 @@ case "$1" in
 	;;
  
  	status)
-		iwconfig $WIFI_iface
-		ifconfig $WIFI_iface
+		if [[ $2 = "--mode" ]]; then
+			if [ $(iwconfig $WIFI_iface | grep "Mode:" | awk -F'[: ]+' '{print $3}') = "Ad-Hoc" ]; then
+				echo "adhoc"
+			elif [ $(iwconfig $WIFI_iface | grep "Mode:" | awk -F'[: ]+' '{print $3}') = "Managed" ]; then
+				echo "default"
+			else 
+				echo "unknown"
+			fi
+		else
+			iwconfig $WIFI_iface
+			ifconfig $WIFI_iface
+		fi
 	;;
 
 	button)
